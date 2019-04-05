@@ -8,14 +8,6 @@ const pick = require('lodash/pick');
 const { solveCubic } = require('./paperNumerical');
 
 
-/**
- * Computes the quality score.
- *
- * @param {Object} quality     - The quality evaluation.
- * @param {Object} aggregation - The quality aggregation.
- *
- * @returns {Number} The score.
- */
 function scoreQuality(quality, aggregation) {
   const scores = {
     carefulness: calculateScore(quality.carefulness, aggregation.carefulness, 0.8),
@@ -32,14 +24,6 @@ function scoreQuality(quality, aggregation) {
   ]);
 }
 
-/**
- * Computes the popularity score.
- *
- * @param {Object} popularity  - The popularity evaluation.
- * @param {Object} aggregation - The popularity aggregation.
- *
- * @returns {Number} The score.
- */
 function scorePopularity(popularity, aggregation) {
   const scores = {
     communityInterest: calculateScore(popularity.communityInterest, aggregation.communityInterest, 1),
@@ -56,14 +40,6 @@ function scorePopularity(popularity, aggregation) {
   ]);
 }
 
-/**
- * Computes the maintenance score.
- *
- * @param {Object} maintenance - The maintenance evaluation.
- * @param {Object} aggregation - The maintenance aggregation.
- *
- * @returns {Number} The score.
- */
 function scoreMaintenance(maintenance, aggregation) {
   const scores = {
     releasesFrequency: calculateScore(maintenance.releasesFrequency, aggregation.releasesFrequency, 1),
@@ -80,19 +56,7 @@ function scoreMaintenance(maintenance, aggregation) {
   ]);
 }
 
-/**
- * Calculates the score of a value taking into the consideration its aggregation (min, max, mean).
- *
- * The mathematical formula can be "previewed" here: Https://github.com/npms-io/npms-analyzer/blob/master/docs/diagrams/bezier.png.
- * It's a bezier curve, with the following points: (0,0), (normValue, avgY), (normValue, avgY) and (1, 1).
- * Thanks @atduarte for this awesome equation.
- *
- * @param {Number} value       - The value.
- * @param {Object} aggregation - The aggregation for the value.
- * @param {Number} avgY        - The avgY value to use for the intermediate point.
- *
- * @returns {Number} The score.
- */
+
 function calculateScore(value, aggregation, avgY) {
   // Normalize value and mean
   const normValue = clamp((value - aggregation.min) / aggregation.max, 0, 1);
@@ -120,14 +84,6 @@ function calculateScore(value, aggregation, avgY) {
   return (t ** 3) - (3 * avgY * (t ** 2)) + (3 * t * avgY);
 }
 
-/**
- * Calculates and builds the score data to be indexed in Elasticsearch.
- *
- * @param {Object} analysis    - The package analysis.
- * @param {Object} aggregation - The most up to date aggregation.
- *
- * @returns {Object} The score data.
- */
 function buildScore(analysis, aggregation) {
   const collected = analysis.collected;
   const evaluation = analysis.evaluation;
@@ -158,17 +114,6 @@ function buildScore(analysis, aggregation) {
   });
 }
 
-// /**
-//  * Get the score indices that are currently available as an array.
-//  *
-//  * This function is necessary to avoid calling POST, DELETE or other document operations that attempt to
-//  * auto-create the index automatically. These operations will fail because we explicitly disabled index auto-creation.
-//  * A lot of errors are outputted to Elasticsearch error log and we want to avoid that.
-//  *
-//  * @param {Elastic} esClient - The Elasticsearch instance.
-//  *
-//  * @returns {Promise} A promise that fulfills when done.
-//  */
 // function getLivingIndices(esClient) {
 //   const indices = ['npms-current', 'npms-new'];
 
@@ -181,203 +126,147 @@ function buildScore(analysis, aggregation) {
 //     }, 'Got living score indices'));
 // }
 
-/**
- * Stores a package score in `npms-current` and `npms-new` indices.
- *
- * If none of the indices exist, the operation fails.
- *
- * @param {Object}  score         - The score data.
- * @param {Object}  livingIndices - The array from getLivingIndices().
- * @param {Elastic} esClient      - The Elasticsearch instance.
- *
- * @returns {Promise} A promise that fulfills when done.
- */
-function storeScore(score, livingIndices, esClient) {
-  // Fail if none exist
-  if (!livingIndices.length) {
-    return Promise.reject(Object.assign(new Error('There are no scoring indices'), {
-      code: 'SCORE_INDEX_NOT_FOUND'
-    }));
-  }
 
-  const name = score.package.name;
+// function storeScore(score, livingIndices, esClient) {
+//   // Fail if none exist
+//   if (!livingIndices.length) {
+//     return Promise.reject(Object.assign(new Error('There are no scoring indices'), {
+//       code: 'SCORE_INDEX_NOT_FOUND'
+//     }));
+//   }
 
-  return Promise.map(livingIndices, (index) => (
-      esClient.index({
-        index,
-        type: 'score',
-        id: name,
-        body: score
-      })
-      .catch({
-        status: 404
-      }, () => {
-        throw Object.assign(new Error(`Index ${index} was deleted meanwhile`), {
-          code: 'SCORE_INDEX_NOT_FOUND'
-        });
-      })
-    ))
-    .return(score)
-    .tap(() => log.trace({
-      score,
-      livingIndices
-    }, `Stored score of ${name}`));
-}
+//   const name = score.package.name;
+
+//   return Promise.map(livingIndices, (index) => (
+//       esClient.index({
+//         index,
+//         type: 'score',
+//         id: name,
+//         body: score
+//       })
+//       .catch({
+//         status: 404
+//       }, () => {
+//         throw Object.assign(new Error(`Index ${index} was deleted meanwhile`), {
+//           code: 'SCORE_INDEX_NOT_FOUND'
+//         });
+//       })
+//     ))
+//     .return(score)
+//     .tap(() => log.trace({
+//       score,
+//       livingIndices
+//     }, `Stored score of ${name}`));
+// }
 
 // -------------------------------------------------------------------
 
-/**
- * Gets a package score data.
- *
- * @param {String} name      - The package name.
- * @param {Elastic} esClient - The Elasticsearch instance.
- *
- * @returns {Promise} The promise that fulfills when done.
- */
-function get(name, esClient) {
-  // Need to use Promise.resolve() because Elasticsearch doesn't use the global promise
-  return Promise.resolve(esClient.get({
-      index: 'npms-current',
-      type: 'score',
-      id: name
-    }))
-    .get('_source')
-    .catch({
-      status: 404
-    }, () => {
-      throw Object.assign(new Error(`Score for ${name} does not exist`), {
-        code: 'SCORE_NOT_FOUND'
-      });
-    });
-}
+// function get(name, esClient) {
+//   // Need to use Promise.resolve() because Elasticsearch doesn't use the global promise
+//   return Promise.resolve(esClient.get({
+//       index: 'npms-current',
+//       type: 'score',
+//       id: name
+//     }))
+//     .get('_source')
+//     .catch({
+//       status: 404
+//     }, () => {
+//       throw Object.assign(new Error(`Score for ${name} does not exist`), {
+//         code: 'SCORE_NOT_FOUND'
+//       });
+//     });
+// }
 
-/**
- * Removes a package score data.
- *
- * Removes score data from both `npms-current` and `npms-new` indices.
- *
- * @param {String} name      - The package name.
- * @param {Elastic} esClient - The Elasticsearch instance.
- *
- * @returns {Promise} The promise that fulfills when done.
- */
-function remove(name, esClient) {
-  // Check current indices
-  return getLivingIndices(esClient)
-    // Remove package from each of them
-    .tap((livingIndices) => (
-        Promise.map(livingIndices, (index) => (
-          // Need to use Promise.resolve() because Elasticsearch doesn't use the global promise
-          Promise.resolve(esClient.delete({
-            index,
-            type: 'score',
-            id: name
-          }))
-          .catch({
-            status: 404
-          }, () => {}) // Just in case..
-        ))
-      )
-      .then(() => log.trace({
-        livingIndices
-      }, `Removed score of ${name}`)));
-}
 
-/**
- * Saves a package score data.
- *
- * Stores score data in `npms-current` and `npms-new` indices.
- * If none of the indices exist, the operation fails.
- *
- * @param {Object} score     - The score data.
- * @param {Elastic} esClient - The Elasticsearch instance.
- *
- * @returns {Promise} The promise that fulfills when done.
- */
-function save(score, esClient) {
-  // Check the existence of `npms-current` and `npms-new` indices
-  return getLivingIndices(esClient)
-    // Store the score in the indices
-    .then((livingIndices) => storeScore(score, livingIndices, esClient));
-}
+// function remove(name, esClient) {
+//   // Check current indices
+//   return getLivingIndices(esClient)
+//     // Remove package from each of them
+//     .tap((livingIndices) => (
+//         Promise.map(livingIndices, (index) => (
+//           // Need to use Promise.resolve() because Elasticsearch doesn't use the global promise
+//           Promise.resolve(esClient.delete({
+//             index,
+//             type: 'score',
+//             id: name
+//           }))
+//           .catch({
+//             status: 404
+//           }, () => {}) // Just in case..
+//         ))
+//       )
+//       .then(() => log.trace({
+//         livingIndices
+//       }, `Removed score of ${name}`)));
+// }
 
-/**
- * Scores all packages.
- *
- * Scores are stored only in the `npms-new` index.
- * If none of the indices exist, the operation fails.
- *
- * @param {Object}  aggregation - The most up to date aggregation.
- * @param {Nano}    npmsNano - The npm nano instance.
- * @param {Elastic} esClient - The Elasticsearch instance.
- *
- * @returns {Promise} A promise that fulfills when done.
- */
-function all(aggregation, npmsNano, esClient) {
-  // Check if the `npms-new` index exists
-  return getLivingIndices(esClient)
-    .then((livingIndices) => {
-      if (livingIndices.indexOf('npms-new') === -1) {
-        throw Object.assign(new Error('There is no `npms-new` scoring index'), {
-          code: 'SCORE_INDEX_NOT_FOUND'
-        });
-      }
 
-      return ['npms-new'];
-    })
-    // Iterate over all packages and score them!
-    .then((livingIndices) => {
-      log.info({
-        aggregation
-      }, 'Scoring packages..');
+// function save(score, esClient) {
+//   // Check the existence of `npms-current` and `npms-new` indices
+//   return getLivingIndices(esClient)
+//     // Store the score in the indices
+//     .then((livingIndices) => storeScore(score, livingIndices, esClient));
+// }
 
-      return couchdbIterator(npmsNano, (row) => {
-          row.index && row.index % 10000 === 0 && log.info(`Scored a total of ${row.index} packages`);
 
-          if (!row.doc) {
-            return;
-          }
+// function all(aggregation, npmsNano, esClient) {
+//   // Check if the `npms-new` index exists
+//   return getLivingIndices(esClient)
+//     .then((livingIndices) => {
+//       if (livingIndices.indexOf('npms-new') === -1) {
+//         throw Object.assign(new Error('There is no `npms-new` scoring index'), {
+//           code: 'SCORE_INDEX_NOT_FOUND'
+//         });
+//       }
 
-          const analysis = row.doc;
-          const name = analysis.collected.metadata.name;
+//       return ['npms-new'];
+//     })
+//     // Iterate over all packages and score them!
+//     .then((livingIndices) => {
+//       log.info({
+//         aggregation
+//       }, 'Scoring packages..');
 
-          // Store the score in the indices
-          return Promise.try(() => storeScore(buildScore(analysis, aggregation), livingIndices, esClient))
-            .then((score) => {
-              log.debug({
-                score,
-                livingIndices
-              }, `Score of ${name} completed`);
-            }, (err) => {
-              log.error({
-                err
-              }, `Score of ${name} failed`);
+//       return couchdbIterator(npmsNano, (row) => {
+//           row.index && row.index % 10000 === 0 && log.info(`Scored a total of ${row.index} packages`);
 
-              // Surpress cubic errors
-              if (err.code !== 'SCORE_CUBIC_MISMATCH') {
-                throw err;
-              }
-            });
-        }, {
-          startkey: 'package!',
-          endkey: 'package!\ufff0',
-          concurrency: 50,
-          limit: 2500,
-          includeDocs: true,
-        })
-        .tap((count) => log.info(`Scoring packages completed, scored a total of ${count} packages`));
-    });
-}
+//           if (!row.doc) {
+//             return;
+//           }
 
-/**
- * Scores a package, indexing its result in Elasticsearch to be searchable.
- *
- * @param {objects} analysis - The package analysis.
- * @param {Nano}    npmsNano - The npms nano client instance.
- * @param {Elastic} esClient - The Elasticsearch instance.
- *
- * @returns {Promise} The promise that fulfills when done.
- */
+//           const analysis = row.doc;
+//           const name = analysis.collected.metadata.name;
+
+//           // Store the score in the indices
+//           return Promise.try(() => storeScore(buildScore(analysis, aggregation), livingIndices, esClient))
+//             .then((score) => {
+//               log.debug({
+//                 score,
+//                 livingIndices
+//               }, `Score of ${name} completed`);
+//             }, (err) => {
+//               log.error({
+//                 err
+//               }, `Score of ${name} failed`);
+
+//               // Surpress cubic errors
+//               if (err.code !== 'SCORE_CUBIC_MISMATCH') {
+//                 throw err;
+//               }
+//             });
+//         }, {
+//           startkey: 'package!',
+//           endkey: 'package!\ufff0',
+//           concurrency: 50,
+//           limit: 2500,
+//           includeDocs: true,
+//         })
+//         .tap((count) => log.info(`Scoring packages completed, scored a total of ${count} packages`));
+//     });
+// }
+
+
 function score(analysis, npmsNano, esClient) {
   const name = analysis.collected.metadata.name;
 
@@ -398,7 +287,4 @@ function score(analysis, npmsNano, esClient) {
 }
 
 module.exports = score;
-module.exports.get = get;
-module.exports.save = save;
-module.exports.remove = remove;
 module.exports.all = all;

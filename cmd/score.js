@@ -42,11 +42,11 @@ exports.handler = (argv) => {
         // var scoreResult = score(res.body) // send whole json to score function
         // upload(scoreResult) // send whole scored json
         var r = evaluate(res.body.collected)
-        // var list = []
-        // list.push(r)
-        // var rr = aggregate(list)
-        console.log(r)
-        // console.log(rr)
+        var list = []
+        list.push(r)
+        var rr = aggregate(list)
+        // console.log(r)
+        console.log(rr)
 
       })
       .then(() => {
