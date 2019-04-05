@@ -8,6 +8,7 @@ const readTheFile = require('./util/fileReader')
 const score = require('./util/scoring')
 const upload = require('./util/upload')
 const evaluate = require('./evaluate/index')
+const aggregate = require('./util/aggregate')
 
 exports.command = 'score'
 exports.describe = 'Get json from api.npms.io, score and upload it to the couchdb database.'
@@ -37,11 +38,15 @@ exports.handler = (argv) => {
         json: true
       })
       .then((res) => {
-        // console.log(res.body) // print the whole json
+        // console.log(res.body.collected) // print the whole json
         // var scoreResult = score(res.body) // send whole json to score function
         // upload(scoreResult) // send whole scored json
         var r = evaluate(res.body.collected)
+        // var list = []
+        // list.push(r)
+        // var rr = aggregate(list)
         console.log(r)
+        // console.log(rr)
 
       })
       .then(() => {
