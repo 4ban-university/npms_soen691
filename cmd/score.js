@@ -59,7 +59,7 @@ exports.handler = (argv) => {
         // console.log(scores)
         console.log(fullData)
 
-        upload(fullData) // send whole scored json
+        // upload(fullData) // send whole scored json
       })
       .then(() => {
         process.exitCode = 0;
