@@ -38,8 +38,8 @@ function aggregate(evaluations) {
             min: evaluations[0],
             max: evaluations[evaluations.length - 1],
             mean: mean(evaluations),
-            truncatedMean: mean(evaluations.slice(trimmedLength, -trimmedLength)),
-            median: evaluations[Math.round(evaluations.length / 2)],
+            truncatedMean: mean(evaluations),
+            median: evaluations[0],
         };
     });
 

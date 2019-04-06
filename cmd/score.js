@@ -5,10 +5,10 @@ const chalk = require('chalk')
 const moment = require('moment')
 const truncate = require('truncate')
 const readTheFile = require('./util/fileReader')
-const score = require('./util/scoring')
+const score = require('./scoring/scoring')
 const upload = require('./util/upload')
 const evaluate = require('./evaluate/index')
-const aggregate = require('./util/aggregate')
+const aggregate = require('./scoring/aggregate')
 
 exports.command = 'score'
 exports.describe = 'Get json from api.npms.io, score and upload it to the couchdb database.'
@@ -38,16 +38,28 @@ exports.handler = (argv) => {
         json: true
       })
       .then((res) => {
-        // console.log(res.body.collected) // print the whole json
-        // var scoreResult = score(res.body) // send whole json to score function
-        // upload(scoreResult) // send whole scored json
-        var r = evaluate(res.body.collected)
-        var list = []
-        list.push(r)
-        var rr = aggregate(list)
-        // console.log(r)
-        console.log(rr)
+        var fullData = res.body
+        delete fullData['evaluation']
+        delete fullData['score']
+        // console.log(fullData)
+        var evaluation = evaluate(fullData.collected)
+        fullData['evaluation'] = evaluation
 
+        // console.log(fullData)
+        // var listOfEvaluations = []
+        // listOfEvaluations.push(evaluation)
+        // listOfEvaluations.push(evaluation)
+        // listOfEvaluations.push(evaluation)
+        // // console.log(listOfEvaluations)
+        // var aggregation = aggregate(listOfEvaluations)
+        // console.log(aggregation)
+        // // // console.log(res.body)
+        var scores = score(fullData)
+        fullData['score'] = scores.score
+        // console.log(scores)
+        console.log(fullData)
+
+        upload(fullData) // send whole scored json
       })
       .then(() => {
         process.exitCode = 0;
