@@ -61,7 +61,8 @@
     "spdx-correct": "^3.0.0",
     "token-dealer": "^3.0.0",
     "weighted-mean": "^1.0.0",
-    "which": "^1.2.8"
+    "which": "^1.2.8",
+    "async": "2.6.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^7.1.2",
