@@ -7,13 +7,13 @@ const { saveMax } = require('./util/upload')
 const evaluate = require('./evaluate/index')
 
 
-exports.command = 'score'
-exports.describe = 'Get json from api.npms.io, score and upload it to the couchdb database.'
+exports.command = 'prepare'
+exports.describe = 'Get json from api.npms.io, analyze, first step of scoring.'
 
 exports.builder = (yargs) =>
   yargs
-  .usage('Usage: $0 score \n\n')
-  .example('$0 score', 'Start')
+  .usage('Usage: $0 prepare \n\n')
+  .example('$0 prepare', 'Start')
 
   .options({
     output: {
@@ -50,7 +50,7 @@ exports.handler = (argv) => {
         // console.log(fullData)
         maxPopularity = fullData.score.detail.popularity > maxPopularity ? fullData.score.detail.popularity : maxPopularity
         minPopularity = fullData.score.detail.popularity < minPopularity ? fullData.score.detail.popularity : minPopularity
-        console.log("POPULARITY: ", maxPopularity, minPopularity)
+        console.log("Package:", fullData.collected.metadata.name)
         saveMax(maxPopularity, minPopularity)
         // upload(fullData)
       })

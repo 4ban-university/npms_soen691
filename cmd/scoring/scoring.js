@@ -15,9 +15,10 @@ function scoreQuality(quality) {
 
 function scorePopularity(popularity) {
   return popularity.communityInterest
+  // return mean([popularity.communityInterest, popularity.downloadsCount, popularity.downloadsAcceleration, popularity.dependentsCount])
 }
 
-function scoreMaintenance(maintenance, aggregation) {
+function scoreMaintenance(maintenance) {
   return mean([maintenance.releasesFrequency, maintenance.commitsFrequency, maintenance.openIssues, maintenance.issuesDistribution])
 }
 

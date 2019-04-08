@@ -8,13 +8,13 @@ const evaluate = require('./evaluate/index')
 const mean = require('lodash/mean');
 
 
-exports.command = 'finalyze'
-exports.describe = 'final'
+exports.command = 'scoring'
+exports.describe = 'The actual scoring of the packages'
 
 exports.builder = (yargs) =>
   yargs
-  .usage('Usage: $0 finalyze \n\n')
-  .example('$0 finalyze', 'Start')
+  .usage('Usage: $0 scoring \n\n')
+  .example('$0 scoring', 'Start')
 
   .options({
     output: {
@@ -30,7 +30,7 @@ exports.builder = (yargs) =>
   });
 
 exports.handler = (argv) => {
-  var list = readTheFile('/Users/ban/code/soen691/score/list')
+  var list = readTheFile('/Users/ban/code/soen691/score/l7')
   var maxPopularity = readTheFile('/Users/ban/code/soen691/score/popularityMax')[0]
   var minPopularity = readTheFile('/Users/ban/code/soen691/score/popularityMin')[0]
   for(var i in list){
@@ -56,7 +56,7 @@ exports.handler = (argv) => {
         var futureScore = (0.35 * futureQuality) + (0.65 * futurePopularity)
 
         fullData.score.final = (0.65 * initialScore) + (0.35 * futureScore)
-        console.log(fullData.score.final)
+        console.log(fullData.collected.metadata.name, fullData.score.final)
         upload(fullData)
       })
       .then(() => {

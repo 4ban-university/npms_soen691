@@ -8,9 +8,9 @@ const upload = (json) => {
   //   console.log("Can't create database!", err)
   // })
 
-  const database = nano.db.use('test')
+  const database = nano.db.use('npm')
   database.insert(json, json.collected.metadata.name).then((body) => {
-    console.log("Uploaded")
+    // console.log("Uploaded")
   }).catch((err) => {
     console.log('Insert error ' + err)
   })
