@@ -29,7 +29,7 @@ exports.builder = (yargs) =>
   });
 
 exports.handler = (argv) => {
-  var list = readTheFile('/Users/ban/code/soen691/score/list')
+  var list = readTheFile('/Users/ban/code/soen691/score/l8')
   var maxPopularity = 0
   var minPopularity = 99999999999999
   for(var i in list){

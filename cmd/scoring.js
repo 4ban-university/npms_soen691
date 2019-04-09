@@ -30,7 +30,7 @@ exports.builder = (yargs) =>
   });
 
 exports.handler = (argv) => {
-  var list = readTheFile('/Users/ban/code/soen691/score/l7')
+  var list = readTheFile('/Users/ban/code/soen691/score/l0')
   var maxPopularity = readTheFile('/Users/ban/code/soen691/score/popularityMax')[0]
   var minPopularity = readTheFile('/Users/ban/code/soen691/score/popularityMin')[0]
   for(var i in list){
@@ -50,13 +50,14 @@ exports.handler = (argv) => {
         // console.log(scores)
         // console.log(fullData)
         fullData.score.detail.popularity = (fullData.score.detail.popularity - minPopularity)/(maxPopularity - minPopularity)
-        var initialScore = (0.35 * fullData.score.detail.quality) +(0.65 * fullData.score.detail.popularity)
+        fullData.score.detail.popularity = ( ((100 - (fullData.score.detail.popularity * 100)) * (fullData.score.detail.popularity)) + (fullData.score.detail.popularity * 100) ) / 100
+        var initialScore = (0.65 * fullData.score.detail.quality) +(0.35 * fullData.score.detail.popularity)
         var futureQuality = mean([fullData.score.detail.quality, fullData.score.detail.maintenance])
         var futurePopularity = (futureQuality - fullData.score.detail.quality) + fullData.score.detail.popularity
-        var futureScore = (0.35 * futureQuality) + (0.65 * futurePopularity)
+        var futureScore = (0.65 * futureQuality) + (0.35 * futurePopularity)
 
         fullData.score.final = (0.65 * initialScore) + (0.35 * futureScore)
-        console.log(fullData.collected.metadata.name, fullData.score.final)
+        console.log(fullData.collected.metadata.name, fullData.score.detail.popularity)
         upload(fullData)
       })
       .then(() => {
