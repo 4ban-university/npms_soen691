@@ -29,7 +29,7 @@ exports.builder = (yargs) =>
   });
 
 exports.handler = (argv) => {
-  var list = readTheFile('/Users/ban/code/soen691/score/l8')
+  var list = readTheFile('/Users/ban/code/soen691/score/lists/lst_deep80')
   var maxPopularity = 0
   var minPopularity = 99999999999999
   for(var i in list){
@@ -52,6 +52,7 @@ exports.handler = (argv) => {
         minPopularity = fullData.score.detail.popularity < minPopularity ? fullData.score.detail.popularity : minPopularity
         console.log("Package:", fullData.collected.metadata.name)
         saveMax(maxPopularity, minPopularity)
+        //205108 0
         // upload(fullData)
       })
       .then(() => {
