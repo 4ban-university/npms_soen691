@@ -1,0 +1,15 @@
+{
+  "name": "npms-api",
+  "version": "2.1.0",
+  "description": "The https://npms.io API.",
+  "title": "npms.io API documentation",
+  "url" : "https://api.npms.io/v2",
+  "order": ["ExecuteSearchQuery", "Search", "Package"],
+  "template": {
+     "withCompare": false
+ },
+ "header": {
+   "title": "Introduction",
+   "filename": "docs/apidoc-includes/header.md"
+ }
+}

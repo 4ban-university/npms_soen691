@@ -1,0 +1,27 @@
+// This is the pm2 configuration file for npms-api
+{
+    apps: [
+        {
+            name: 'npms-api',
+            script: './server.js',
+            args: [],
+            instances: 3,
+            env : { NODE_ENV: 'production' },
+            max_memory_restart: '2018M',  // Restart if it's getting close to the limit
+            node_args: '--max_old_space_size=2048',
+        },
+    ],
+    deploy: {
+        production: {
+            user: 'www',
+            host: '163.172.160.79',
+            ref: 'origin/master',
+            repo: 'https://github.com/npms-io/npms-api.git',
+            path: '/home/www/npms-api',
+            'post-deploy': '\
+cp ../local.json5 ./config/ && \
+npm update --loglevel http --production && \
+pm2 startOrRestart ecosystem.json5 --env production',
+        },
+    },
+}

@@ -1,0 +1,52 @@
+{
+  "name": "api",
+  "version": "0.0.1",
+  "description": "API",
+  "main": "index.js",
+  "scripts": {
+    "start2": "node server.js",
+    "start": "nodemon --watch server.js --watch index.js --watch lib --watch config --ext js,json5 server.js --log-level debug",
+    "lint": "eslint . --ignore-path .gitignore",
+    "docs": "scripts/generate-doc",
+    "docs-push": "scripts/generate-doc --push",
+    "test": "mocha",
+    "test-cov": "istanbul cover --dir test/coverage _mocha && echo Coverage lies in test/coverage/lcov-report/index.html",
+    "test-travis": "istanbul cover _mocha --report lcovonly"
+  },
+  "license": "MIT",
+  "bin": {
+    "npms-api": "./server.js"
+  },
+  "dependencies": {
+    "@npms/queries": "^3.0.0",
+    "bluebird": "^3.5.2",
+    "config": "^2.0.1",
+    "elasticsearch": "^15.2.0",
+    "joi": "^14.0.2",
+    "koa": "^1.2.0",
+    "koa-bodyparser": "^2.2.0",
+    "koa-ga-pageview": "^1.0.0",
+    "koa-pino-logger": "^1.0.2",
+    "koa-response-time": "^1.0.2",
+    "koa-router": "^5.4.0",
+    "lodash": "^4.17.11",
+    "nano": "^7.1.0",
+    "pino": "^5.8.0",
+    "require-directory": "^2.1.1",
+    "validate-npm-package-name": "^3.0.0",
+    "yargs": "^12.0.2"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^7.1.2",
+    "@commitlint/config-conventional": "^7.1.2",
+    "apidoc": "^0.17.1",
+    "coveralls": "^3.0.2",
+    "eslint": "^5.8.0",
+    "eslint-config-moxy": "^6.1.1",
+    "husky": "^1.1.2",
+    "istanbul": "^0.4.2",
+    "lint-staged": "^8.0.4",
+    "mocha": "^5.2.0",
+    "nodemon": "^1.18.5"
+  }
+}
